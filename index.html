@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="id" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kas Masjid Nurul Ichsan - Google Sheets</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+        body {
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .floating-header {
+            background: linear-gradient(135deg, #a8d4f0 0%, #b8e0f7 50%, #c5e8fc 100%);
+            box-shadow: 0 8px 32px rgba(168, 212, 240, 0.4);
+        }
+        
+        .card-shadow {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .table-row:hover {
+            background: linear-gradient(90deg, #f0f9ff 0%, #ffffff 100%);
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-fade-in {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        
+        .animate-delay-1 { animation-delay: 0.1s; }
+        .animate-delay-2 { animation-delay: 0.2s; }
+        .animate-delay-3 { animation-delay: 0.3s; }
+        
+        .summary-card {
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .summary-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+  <div id="app-wrapper" class="w-full h-full overflow-auto"><!-- Floating Header -->
+   <div class="p-4 md:p-6">
+    <header class="floating-header rounded-2xl md:rounded-3xl p-6 md:p-8 mx-auto max-w-6xl animate-fade-in">
+     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+       <div>
+        <svg width="60" height="60" viewbox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="45" fill="white" fill-opacity="0.9" /> <path d="M50 15C50 15 35 25 35 35V40H65V35C65 25 50 15 50 15Z" fill="#2563eb" /> <circle cx="50" cy="18" r="4" fill="#fbbf24" /> <rect x="30" y="40" width="40" height="35" fill="#3b82f6" /> <rect x="45" y="55" width="10" height="20" rx="5" fill="#1e40af" /> <rect x="32" y="45" width="8" height="12" rx="1" fill="#93c5fd" /> <rect x="60" y="45" width="8" height="12" rx="1" fill="#93c5fd" /> <rect x="20" y="50" width="10" height="25" fill="#60a5fa" /> <rect x="70" y="50" width="10" height="25" fill="#60a5fa" /> <path d="M25 45C25 45 22 48 22 50H28C28 48 25 45 25 45Z" fill="#2563eb" /> <path d="M75 45C75 45 72 48 72 50H78C78 48 75 45 75 45Z" fill="#2563eb" /> <circle cx="25" cy="43" r="2" fill="#fbbf24" /> <circle cx="75" cy="43" r="2" fill="#fbbf24" />
+        </svg>
+       </div>
+       <div class="text-center md:text-left">
+        <h1 class="text-2xl md:text-3xl font-bold text-blue-900">Kas Masjid Nurul Ichsan</h1>
+        <p class="text-blue-700 text-sm md:text-base mt-1">💾 Tersimpan di Google Sheets</p>
+       </div>
+      </div>
+      <div class="flex flex-col gap-3"><!-- Connection Status -->
+       <div id="connection-status" class="bg-white/80 rounded-xl px-4 py-2 flex items-center gap-2">
+        <div id="status-indicator" class="flex items-center gap-2">
+         <div class="w-3 h-3 rounded-full bg-yellow-500 animate-pulse"></div><span class="text-sm font-medium text-gray-700">Menghubungkan...</span>
+        </div>
+       </div><!-- Date & Time -->
+       <div class="bg-white/80 rounded-xl px-5 py-3 text-center">
+        <p id="current-day" class="text-blue-800 font-semibold text-lg"></p>
+        <p id="current-date" class="text-blue-600 text-sm"></p>
+        <p id="current-time" class="text-blue-500 text-xs mt-1 font-medium"></p>
+       </div>
+      </div>
+     </div>
+    </header>
+   </div><!-- Main Content -->
+   <div class="px-4 md:px-6 pb-8 max-w-6xl mx-auto"><!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+     <div class="summary-card bg-white/90 rounded-2xl p-5 card-shadow animate-fade-in animate-delay-1">
+      <div class="flex items-center gap-3">
+       <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+       </div>
+       <div>
+        <p class="text-gray-500 text-sm">Total Pemasukan</p>
+        <p id="total-income" class="text-green-600 font-bold text-xl">Rp 0</p>
+       </div>
+      </div>
+     </div>
+     <div class="summary-card bg-white/90 rounded-2xl p-5 card-shadow animate-fade-in animate-delay-2">
+      <div class="flex items-center gap-3">
+       <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+        </svg>
+       </div>
+       <div>
+        <p class="text-gray-500 text-sm">Total Pengeluaran</p>
+        <p id="total-expense" class="text-red-600 font-bold text-xl">Rp 0</p>
+       </div>
+      </div>
+     </div>
+     <div class="summary-card bg-white/90 rounded-2xl p-5 card-shadow animate-fade-in animate-delay-3">
+      <div class="flex items-center gap-3">
+       <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+       </div>
+       <div>
+        <p class="text-gray-500 text-sm">Saldo Saat Ini</p>
+        <p id="current-balance" class="text-blue-600 font-bold text-xl">Rp 0</p>
+       </div>
+      </div>
+     </div>
+    </div><!-- Input Form -->
+    <div class="bg-white/90 rounded-2xl card-shadow p-6 mb-6 animate-fade-in">
+     <h2 class="text-gray-800 font-semibold text-lg mb-4 flex items-center gap-2">
+      <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg> Tambah Transaksi Baru</h2>
+     <form id="transaction-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div><label for="input-date" class="block text-sm font-medium text-gray-700 mb-2">Tanggal</label> <input type="date" id="input-date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      </div>
+      <div><label for="input-description" class="block text-sm font-medium text-gray-700 mb-2">Keterangan</label> <select id="input-description" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"> <option value="">-- Pilih Keterangan --</option> <optgroup label="Pemasukan"> <option value="Infaq Jumat">Infaq Jumat</option> <option value="Donasi Hamba Allah">Donasi Hamba Allah</option> <option value="Infaq Kotak Amal">Infaq Kotak Amal</option> <option value="Zakat Fitrah">Zakat Fitrah</option> <option value="Zakat Mal">Zakat Mal</option> </optgroup> <optgroup label="Pengeluaran"> <option value="Bayar Listrik">Bayar Listrik</option> <option value="Bayar Air">Bayar Air</option> <option value="Honor Imam &amp; Marbot">Honor Imam &amp; Marbot</option> <option value="Renovasi Masjid">Renovasi Masjid</option> </optgroup> </select>
+      </div>
+      <div><label for="input-income" class="block text-sm font-medium text-gray-700 mb-2">Pemasukan (Rp)</label> <input type="text" id="input-income" placeholder="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div><label for="input-expense" class="block text-sm font-medium text-gray-700 mb-2">Pengeluaran (Rp)</label> <input type="text" id="input-expense" placeholder="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="md:col-span-2 flex justify-end gap-3"><button type="button" id="reset-form-btn" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"> Reset </button> <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2 shadow-md">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg> Simpan ke Google Sheets </button>
+      </div>
+     </form>
+    </div><!-- Chart -->
+    <div class="bg-white/90 rounded-2xl card-shadow p-6 mb-6 animate-fade-in">
+     <h2 class="text-gray-800 font-semibold text-lg mb-4">📊 Grafik Keuangan</h2>
+     <div class="relative" style="height: 300px;">
+      <canvas id="financeChart"></canvas>
+     </div>
+    </div><!-- Data Table -->
+    <div class="bg-white/90 rounded-2xl card-shadow overflow-hidden animate-fade-in">
+     <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
+      <h2 class="text-white font-semibold text-lg">📋 Rincian Transaksi</h2>
+     </div>
+     <div class="overflow-x-auto">
+      <table class="w-full">
+       <thead>
+        <tr class="bg-blue-50 text-blue-800">
+         <th class="px-4 py-3 text-left text-sm font-semibold">No</th>
+         <th class="px-4 py-3 text-left text-sm font-semibold">Tanggal</th>
+         <th class="px-4 py-3 text-left text-sm font-semibold">Keterangan</th>
+         <th class="px-4 py-3 text-right text-sm font-semibold">Pemasukan</th>
+         <th class="px-4 py-3 text-right text-sm font-semibold">Pengeluaran</th>
+         <th class="px-4 py-3 text-right text-sm font-semibold">Saldo</th>
+         <th class="px-4 py-3 text-center text-sm font-semibold">Aksi</th>
+        </tr>
+       </thead>
+       <tbody id="transaction-table"><!-- Data will load here -->
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+        // ==========================================
+        // 🔧 KONFIGURASI - GANTI URL INI!
+        // ==========================================
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzu73jdZbWEbHyg8KGWXATpz1RFt3dz9MQjXv9GbNVaYO19JW6boHtyS556WGDgAg4s/exec';
+        
+        let transactions = [];
+        let isLoading = false;
+        let chartInstance = null;
+
+        // Update connection status
+        function updateConnectionStatus(connected, error = null) {
+            const statusIndicator = document.getElementById('status-indicator');
+            
+            if (connected) {
+                statusIndicator.innerHTML = `
+                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    <span class="text-sm font-medium text-green-700">✅ Terhubung</span>
+                `;
+            } else {
+                statusIndicator.innerHTML = `
+                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                    <span class="text-sm font-medium text-red-700">❌ Error</span>
+                `;
+            }
+        }
+
+        // Update date time
+        function updateDateTime() {
+            const now = new Date();
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+                          'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            
+            document.getElementById('current-day').textContent = days[now.getDay()];
+            document.getElementById('current-date').textContent = 
+                `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+            document.getElementById('current-time').textContent = 
+                now.toLocaleTimeString('id-ID') + ' WIB';
+        }
+
+        // Format currency
+        function formatCurrency(amount) {
+            return 'Rp ' + amount.toLocaleString('id-ID');
+        }
+
+        // Format date
+        function formatDateDisplay(dateStr) {
+            const date = new Date(dateStr);
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+            return `${String(date.getDate()).padStart(2, '0')} ${months[date.getMonth()]} ${date.getFullYear()}`;
+        }
+
+        // Load all transactions
+        async function loadTransactions() {
+            try {
+                isLoading = true;
+                const response = await fetch(`${API_URL}?action=getAll`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    transactions = result.data;
+                    renderTable();
+                    calculateTotals();
+                    updateChart();
+                    updateConnectionStatus(true);
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                updateConnectionStatus(false, error.message);
+                Swal.fire('Error', 'Gagal memuat data: ' + error.message, 'error');
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        // Render table
+        function renderTable() {
+            const tbody = document.getElementById('transaction-table');
+            tbody.innerHTML = '';
+            
+            if (transactions.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                            Tidak ada data transaksi
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            transactions.forEach((t, index) => {
+                const row = document.createElement('tr');
+                row.className = 'table-row border-b border-gray-100';
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-gray-600 text-sm">${index + 1}</td>
+                    <td class="px-4 py-3 text-gray-700 text-sm">${t.dateDisplay}</td>
+                    <td class="px-4 py-3 text-gray-800 text-sm">${t.description}</td>
+                    <td class="px-4 py-3 text-right text-green-600 font-medium text-sm">${t.income ? formatCurrency(t.income) : '-'}</td>
+                    <td class="px-4 py-3 text-right text-red-600 font-medium text-sm">${t.expense ? formatCurrency(t.expense) : '-'}</td>
+                    <td class="px-4 py-3 text-right text-blue-600 font-semibold text-sm">${formatCurrency(t.balance)}</td>
+                    <td class="px-4 py-3 text-center">
+                        <button onclick="deleteTransaction('${t.__backendId}')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-xs">
+                            Hapus
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Calculate totals
+        function calculateTotals() {
+            const totalIncome = transactions.reduce((sum, t) => sum + t.income, 0);
+            const totalExpense = transactions.reduce((sum, t) => sum + t.expense, 0);
+            const balance = transactions.length > 0 ? transactions[transactions.length - 1].balance : 0;
+
+            document.getElementById('total-income').textContent = formatCurrency(totalIncome);
+            document.getElementById('total-expense').textContent = formatCurrency(totalExpense);
+            document.getElementById('current-balance').textContent = formatCurrency(balance);
+        }
+
+        // Update chart
+        function updateChart() {
+            const ctx = document.getElementById('financeChart');
+            if (chartInstance) chartInstance.destroy();
+
+            const chartData = transactions.slice(-10);
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.map(t => t.dateDisplay.substring(0, 6)),
+                    datasets: [{
+                        label: 'Pemasukan',
+                        data: chartData.map(t => t.income),
+                        backgroundColor: 'rgba(34, 197, 94, 0.8)'
+                    }, {
+                        label: 'Pengeluaran',
+                        data: chartData.map(t => t.expense),
+                        backgroundColor: 'rgba(239, 68, 68, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        // Add transaction
+        async function addTransaction(date, description, income, expense) {
+            const lastBalance = transactions.length > 0 ? transactions[transactions.length - 1].balance : 0;
+            const newBalance = lastBalance + income - expense;
+            
+            const transaction = {
+                date,
+                dateDisplay: formatDateDisplay(date),
+                description,
+                income,
+                expense,
+                balance: newBalance
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'create',
+                        transaction
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    await Swal.fire('Berhasil!', 'Transaksi berhasil disimpan', 'success');
+                    await loadTransactions();
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                await Swal.fire('Error', 'Gagal menyimpan: ' + error.message, 'error');
+            }
+        }
+
+        // Delete transaction
+        async function deleteTransaction(id) {
+            const result = await Swal.fire({
+                title: 'Hapus Transaksi?',
+                text: 'Data yang dihapus tidak dapat dikembalikan!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Hapus',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#ef4444'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'delete',
+                            id
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        await Swal.fire('Terhapus!', 'Transaksi berhasil dihapus', 'success');
+                        await loadTransactions();
+                    } else {
+                        throw new Error(result.error);
+                    }
+                } catch (error) {
+                    await Swal.fire('Error', 'Gagal menghapus: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // Form handling
+        document.getElementById('transaction-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const date = document.getElementById('input-date').value;
+            const description = document.getElementById('input-description').value;
+            const income = parseInt(document.getElementById('input-income').value.replace(/\./g, '')) || 0;
+            const expense = parseInt(document.getElementById('input-expense').value.replace(/\./g, '')) || 0;
+            
+            if (income === 0 && expense === 0) {
+                await Swal.fire('Perhatian', 'Mohon isi nominal pemasukan atau pengeluaran', 'warning');
+                return;
+            }
+
+            await addTransaction(date, description, income, expense);
+            e.target.reset();
+        });
+
+        document.getElementById('reset-form-btn').addEventListener('click', () => {
+            document.getElementById('transaction-form').reset();
+        });
+
+        // Number formatting
+        function formatNumberInput(value) {
+            const numbers = value.replace(/\D/g, '');
+            return numbers.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        ['input-income', 'input-expense'].forEach(id => {
+            document.getElementById(id).addEventListener('input', (e) => {
+                e.target.value = formatNumberInput(e.target.value);
+            });
+        });
+
+        // Initialize
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+        loadTransactions();
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c188d01e6fe051a',t:'MTc2OTAxNjc0NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
